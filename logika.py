@@ -85,8 +85,8 @@ class Blok:
 		centrala = self.centralna_kocka()
 		tocke_okrog_izhodisca = []
 		obrnjene_tocke = []
-		# Sprva poiščemo točko, ki je centralna, torej okoli katere se bo blok zavrtel. Nato točko premaknemo na izhodišče, nakar
-		# jo obrnemo s pomočjo matrike, a ker je za kot 90°, na srečo ni potrebno uporabit matrik, le dejstvo, da je
+		# Sprva poiščemo točko, ki je centralna, torej okoli katere se bo blok zavrtel. Nato blok premaknemo na izhodišče s centralno točko na koordinati (0, 0), nakar
+		# blok obrnemo s pomočjo matrike, a ker je za kot 90°, na srečo ni potrebno uporabit matrik, le dejstvo, da je
 		# treba zamenjati koordinati ter obrniti predznak pri prvi. Self.tocke, tocke_okrog_izgodisca in obrnjene_tocke
 		# so enako dolgi seznami, takšen napis je le za lažji pregled.
 		for i in range(len(self.tocke)):
