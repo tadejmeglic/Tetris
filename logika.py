@@ -5,7 +5,106 @@ Bloki = [[(-1, 0), (0, 0), (1, 0), (2, 0)], [(-1, 0), (-1, 1), (0, 1), (1, 1)], 
 (0, 1), (1, 1)], [(0, 0), (0, 1), (1, 0), (1, 1)], [(0, 0), (0, 1), (1, 0), (-1, 1)], [(0, 0), (0,
 1), (1, 1), (-1, 1)], [(0, 0), (-1, 0), (0, 1), (1, 1)]]
 
-class Blok:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Igra:
+
+	def __init__(self, sirina, dolzina):
+		self.sirina = sirina
+		self.dolzina = dolzina
+		self.povrsina = []
+		self.pojav_bloka()
+
+	def pojav_bloka(self):
+		dolocen_blok = random.choice(Bloki)
+		s=[]
+		# Določen blok spravimo na sredino in na vrh igralne površine
+		for i in range(len(dolocen_blok)):
+			x, y = dolocen_blok[i][0], dolocen_blok[i][1]
+			x+= int(self.sirina) // 2
+			s.append((x, y))
+		self.blok = Blok(s)
+
+	def blok_v_steno(self):
+		for x, y in self.blok.tocke:
+			if not (0 <= x < self.sirina):
+				return False
+
+	def blok_v_tla(self):
+		a = 0
+		for x, y in self.blok.tocke:
+			if not (0 <= y < self.dolzina - 1):
+				self.povrsina += (self.blok.tocke)
+				self.pojav_bloka()
+				a = 1
+				break
+			else:
+				a = 0
+		if a == 0:
+			return False
+		else:
+			return True
+
+	def odstrani(self):
+		for y in range(self.dolzina):
+			k=0
+			for x in range(self.sirina):
+				if (x, y) in self.povrsina:
+					k+=1
+					print(k)
+				if k == self.sirina:
+					for x in range(self.sirina):
+						self.povrsina.remove((x, y))
+						k=0
+					m = []
+					for i in self.povrsina:
+						print(i, 'i')
+						print(y, 'y')
+						print(x, 'x')
+						if i[1] < y:
+							i=(i[0], i[1] + 1)
+							print(i, 'i potem')
+							m.append(i)
+						elif i[1] > y:
+							m.append(i)
+					self.povrsina = m
+
+
+
+
+
+
+
+
+
+
+	# Preverimo, če se premikajoči se blok v naslednji potezi zaleti v že obstoječe bloke.
+
+	def blok_v_blok_dol(self):
+		return not len(self.blok.premakni_dol_brez_ovire_test() + self.povrsina) == len(set(self.blok.premakni_dol_brez_ovire_test() + self.povrsina))
+
+	def blok_v_blok_desno(self):
+		return not len(self.blok.premakni_vodoravno_brez_ovire(DESNO) + self.povrsina) == len(set(self.blok.premakni_vodoravno_brez_ovire(DESNO) + self.povrsina))
+
+	def blok_v_blok_levo(self):
+		return not len(self.blok.premakni_vodoravno_brez_ovire(LEVO) + self.povrsina) == len(set(self.blok.premakni_vodoravno_brez_ovire(LEVO) + self.povrsina))
+
+	def blok_v_blok_rotiranje(self):
+		return not len(self.blok.rotiraj_brez_ovire() + self.povrsina) == len(set(self.blok.rotiraj_brez_ovire() + self.povrsina))
+
+class Blok(Igra):
 	def __init__(self, tocke):
 		self.tocke = tocke
 
@@ -17,7 +116,6 @@ class Blok:
 			if Igra.blok_v_blok_dol(a) == False:
 				for i in range(len(self.tocke)):
 					self.tocke[i] = (self.tocke[i][0], self.tocke[i][1] + 1)
-				return self.tocke
 			else:
 				a.povrsina += self.tocke
 				Igra.pojav_bloka(a)
@@ -89,78 +187,35 @@ class Blok:
 		# blok obrnemo s pomočjo matrike, a ker je za kot 90°, na srečo ni potrebno uporabit matrik, le dejstvo, da je
 		# treba zamenjati koordinati ter obrniti predznak pri prvi. Self.tocke, tocke_okrog_izgodisca in obrnjene_tocke
 		# so enako dolgi seznami, takšen napis je le za lažji pregled.
+		if Igra.blok_v_blok_rotiranje(a) == False:
+			for i in range(len(self.tocke)):
+				tocke_okrog_izhodisca.append((int(self.tocke[i][0]) - centrala[0], int(self.tocke[i][1]) - centrala[1]))
+			for i in range(len(tocke_okrog_izhodisca)):
+				obrnjene_tocke.append((-tocke_okrog_izhodisca[i][1],tocke_okrog_izhodisca[i][0]))
+			for i in range(len(obrnjene_tocke)):
+				self.tocke[i] = (int(obrnjene_tocke[i][0]) + centrala[0], int(obrnjene_tocke[i][1]) + centrala[1])
+		elif set(self.tocke).intersection(a.povrsina)[0] > centrala[0]:
+			self.premakni_vodoravno(LEVO)
+			self.rotiraj()
+		elif set(self.tocke).intersection(a.povrsina)[0] < centrala[0]:
+			self.premakni_vodoravno(DESNO)
+			self.rotiraj()
+		return self.tocke
+
+	def rotiraj_brez_ovire(self):
+		centrala = self.centralna_kocka()
+		s=[]
+		tocke_okrog_izhodisca = []
+		obrnjene_tocke = []
 		for i in range(len(self.tocke)):
 			tocke_okrog_izhodisca.append((int(self.tocke[i][0]) - centrala[0], int(self.tocke[i][1]) - centrala[1]))
 		for i in range(len(tocke_okrog_izhodisca)):
 			obrnjene_tocke.append((-tocke_okrog_izhodisca[i][1],tocke_okrog_izhodisca[i][0]))
 		for i in range(len(obrnjene_tocke)):
-			self.tocke[i] = (int(obrnjene_tocke[i][0]) + centrala[0], int(obrnjene_tocke[i][1]) + centrala[1])
-		return self.tocke
+			s.append((int(obrnjene_tocke[i][0]) + centrala[0], int(obrnjene_tocke[i][1]) + centrala[1]))
+		return s
 
-
-
-
-
-
-
-
-
-
-
-
-class Igra:
-
-	def __init__(self, sirina, dolzina):
-		self.sirina = sirina
-		self.dolzina = dolzina
-		self.povrsina = []
-
-	def pojav_bloka(self):
-		dolocen_blok = random.choice(Bloki)
-		s=[]
-		# Določen blok spravimo na sredino in na vrh igralne površine
-		for i in range(len(dolocen_blok)):
-			x, y = dolocen_blok[i][0], dolocen_blok[i][1]
-			print(x, int(self.sirina))
-			x+= int(self.sirina) // 2
-			s.append((x, y))
-		self.blok = Blok(s)
-
-	def blok_v_steno(self):
-		for x, y in self.blok.tocke:
-			if not (0 <= x < self.sirina):
-				return False
-
-	def blok_v_tla(self):
-		a = 0
-		for x, y in self.blok.tocke:
-			print((x, y))
-			if not (0 <= y < self.dolzina - 1):
-				self.povrsina += (self.blok.tocke)
-				self.pojav_bloka()
-				a = 1
-				break
-			else:
-				a = 0
-		if a == 0:
-			return False
-		else:
-			return True
-
-	# Preverimo, če se premikajoči se blok v naslednji potezi zaleti v že obstoječe bloke.
-
-	def blok_v_blok_dol(self):
-		return not len(self.blok.premakni_dol_brez_ovire_test() + self.povrsina) == len(set(self.blok.premakni_dol_brez_ovire_test() + self.povrsina))
-
-	def blok_v_blok_desno(self):
-		return not len(self.blok.premakni_vodoravno_brez_ovire(DESNO) + self.povrsina) == len(set(self.blok.premakni_vodoravno_brez_ovire(DESNO) + self.povrsina))
-
-	def blok_v_blok_levo(self):
-		return not len(self.blok.premakni_vodoravno_brez_ovire(LEVO) + self.povrsina) == len(set(self.blok.premakni_vodoravno_brez_ovire(LEVO) + self.povrsina))
-
-
-
-a = Igra(10, 10)
+a = Igra(10, 20)
 a.pojav_bloka()
 
 
