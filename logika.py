@@ -1,4 +1,5 @@
 import random
+file = 'Complete History Of The Soviet Union, Arranged To The Melody Of Tetris.mp3'
 DESNO, DOL, LEVO = "desno", "dol", "levo"
 
 Bloki = [[(-1, 0), (0, 0), (1, 0), (2, 0)], [(-1, 0), (-1, 1), (0, 1), (1, 1)], [(1, 0), (-1, 1),
@@ -26,6 +27,7 @@ class Igra:
 		self.dolzina = dolzina
 		self.povrsina = []
 		self.pojav_bloka()
+		self.score = 0
 
 	def pojav_bloka(self):
 		dolocen_blok = random.choice(Bloki)
@@ -58,28 +60,28 @@ class Igra:
 			return True
 
 	def odstrani(self):
+		# t označuje število odstranjenih vrstic naenkrat in exsponentno poveča pridobljene točke
+		t=0
 		for y in range(self.dolzina):
 			k=0
 			for x in range(self.sirina):
 				if (x, y) in self.povrsina:
 					k+=1
-					print(k)
 				if k == self.sirina:
+					t+=1
 					for x in range(self.sirina):
 						self.povrsina.remove((x, y))
 						k=0
 					m = []
 					for i in self.povrsina:
-						print(i, 'i')
-						print(y, 'y')
-						print(x, 'x')
 						if i[1] < y:
 							i=(i[0], i[1] + 1)
-							print(i, 'i potem')
 							m.append(i)
 						elif i[1] > y:
 							m.append(i)
 					self.povrsina = m
+		self.score +=int(9 ** (t / 2)) - 1
+
 
 
 
@@ -112,15 +114,15 @@ class Blok(Igra):
 		return 'Blok({})'.format(self.tocke)
 
 	def premakni_dol(self):
-		if Igra.blok_v_tla(a) == False:
-			if Igra.blok_v_blok_dol(a) == False:
+		if Igra.blok_v_tla(instance) == False:
+			if Igra.blok_v_blok_dol(instance) == False:
 				for i in range(len(self.tocke)):
 					self.tocke[i] = (self.tocke[i][0], self.tocke[i][1] + 1)
 			else:
-				a.povrsina += self.tocke
-				Igra.pojav_bloka(a)
+				instance.povrsina += self.tocke
+				Igra.pojav_bloka(instance)
 		else:
-			Igra.blok_v_tla(a)
+			Igra.blok_v_tla(instance)
 
 	def premakni_dol_brez_ovire_test(self):
 		# Metoda, ki preveri, kakšne bodo koordinate točk bloka po premiku. Ignorira tla in ostale bloke.
@@ -133,10 +135,10 @@ class Blok(Igra):
 
 	def premakni_vodoravno(self, smer):
 		if smer == DESNO:
-			if Igra.blok_v_blok_desno(a) == False:
+			if Igra.blok_v_blok_desno(instance) == False:
 				for i in range(len(self.tocke)):
 					x, y = self.tocke[i][0], self.tocke[i][1]
-					if x == a.sirina - 1:
+					if x == instance.sirina - 1:
 						return
 					else:
 						continue
@@ -144,7 +146,7 @@ class Blok(Igra):
 					self.tocke[i] = (self.tocke[i][0] + 1, self.tocke[i][1])
 				return self.tocke
 		if smer == LEVO:
-			if Igra.blok_v_blok_levo(a) == False:
+			if Igra.blok_v_blok_levo(instance) == False:
 				for i in range(len(self.tocke)):
 					x, y = self.tocke[i][0], self.tocke[i][1]
 					if x == 0:
@@ -187,17 +189,17 @@ class Blok(Igra):
 		# blok obrnemo s pomočjo matrike, a ker je za kot 90°, na srečo ni potrebno uporabit matrik, le dejstvo, da je
 		# treba zamenjati koordinati ter obrniti predznak pri prvi. Self.tocke, tocke_okrog_izgodisca in obrnjene_tocke
 		# so enako dolgi seznami, takšen napis je le za lažji pregled.
-		if Igra.blok_v_blok_rotiranje(a) == False:
+		if Igra.blok_v_blok_rotiranje(instance) == False:
 			for i in range(len(self.tocke)):
 				tocke_okrog_izhodisca.append((int(self.tocke[i][0]) - centrala[0], int(self.tocke[i][1]) - centrala[1]))
 			for i in range(len(tocke_okrog_izhodisca)):
 				obrnjene_tocke.append((-tocke_okrog_izhodisca[i][1],tocke_okrog_izhodisca[i][0]))
 			for i in range(len(obrnjene_tocke)):
 				self.tocke[i] = (int(obrnjene_tocke[i][0]) + centrala[0], int(obrnjene_tocke[i][1]) + centrala[1])
-		elif set(self.tocke).intersection(a.povrsina)[0] > centrala[0]:
+		elif set(self.tocke).intersection(instance.povrsina)[0] > centrala[0]:
 			self.premakni_vodoravno(LEVO)
 			self.rotiraj()
-		elif set(self.tocke).intersection(a.povrsina)[0] < centrala[0]:
+		elif set(self.tocke).intersection(instance.povrsina)[0] < centrala[0]:
 			self.premakni_vodoravno(DESNO)
 			self.rotiraj()
 		return self.tocke
@@ -215,8 +217,8 @@ class Blok(Igra):
 			s.append((int(obrnjene_tocke[i][0]) + centrala[0], int(obrnjene_tocke[i][1]) + centrala[1]))
 		return s
 
-a = Igra(10, 20)
-a.pojav_bloka()
+instance = Igra(10, 20)
+instance.pojav_bloka()
 
 
 

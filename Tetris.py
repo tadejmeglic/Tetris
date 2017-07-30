@@ -1,5 +1,11 @@
 import tkinter as tk
 import logika
+#import pyglet
+
+#music = pyglet.resource.media('Complete History Of The Soviet Union, Arranged To The Melody Of Tetris.mp3')
+#music.play()
+#pyglet.app.run()
+
 
 VELIKOST_POLJA = 10
 ODMIK = 5
@@ -7,15 +13,19 @@ ODMIK = 5
 class Tetris:
 
 	def __init__(self, okno):
-		self.igra = logika.a
+		self.igra = logika.instance
 		self.okno = okno
 		self.igralna_plosca = tk.Canvas(
 			width=VELIKOST_POLJA * self.igra.sirina + 2 * ODMIK,
 			height=VELIKOST_POLJA * self.igra.dolzina + 2 * ODMIK)
-		self.igralna_plosca.pack()
+		self.igralna_plosca.grid(row = 0, column = 0)	
 		self.okno.bind('<Key>', self.pomen_tipke)
 		self.hitrost = 5
+		prikaz = tk.Frame(self.okno)
+		prikaz.grid(row = 1, column = 0)
+		self.prikaz_tock = tk.Label(prikaz)
 		self.korak()
+		self.prikaz_tock.pack()
 
 
 
@@ -62,6 +72,10 @@ class Tetris:
 				ODMIK + VELIKOST_POLJA * y,
 				ODMIK + VELIKOST_POLJA * x + VELIKOST_POLJA,
 				ODMIK + VELIKOST_POLJA * y + VELIKOST_POLJA, fill='black')
+		self.prikaz_tock['text'] = str(self.igra.score)
+
+
+
 
 
 
