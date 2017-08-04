@@ -1,12 +1,11 @@
 import random
-file = 'Complete History Of The Soviet Union, Arranged To The Melody Of Tetris.mp3'
 DESNO, DOL, LEVO = "desno", "dol", "levo"
 
-Bloki = [[(-1, 0), (0, 0), (1, 0), (2, 0)], [(-1, 0), (-1, 1), (0, 1), (1, 1)], [(1, 0), (-1, 1),
-(0, 1), (1, 1)], [(0, 0), (0, 1), (1, 0), (1, 1)], [(0, 0), (0, 1), (1, 0), (-1, 1)], [(0, 0), (0,
-1), (1, 1), (-1, 1)], [(0, 0), (-1, 0), (0, 1), (1, 1)]]
+#Bloki = [[(-1, 0), (0, 0), (1, 0), (2, 0)], [(-1, 0), (-1, 1), (0, 1), (1, 1)], [(1, 0), (-1, 1),
+#(0, 1), (1, 1)], [(0, 0), (0, 1), (1, 0), (1, 1)], [(0, 0), (0, 1), (1, 0), (-1, 1)], [(0, 0), (0,
+#1), (1, 1), (-1, 1)], [(0, 0), (-1, 0), (0, 1), (1, 1)]]
 
-
+Bloki = [[(-1, 0), (0, 0), (1, 0), (2, 0)]]
 
 
 
@@ -42,12 +41,12 @@ class Igra:
 	def blok_v_steno(self):
 		for x, y in self.blok.tocke:
 			if not (0 <= x < self.sirina):
-				return False
+				return True
 
 	def blok_v_tla(self):
 		a = 0
 		for x, y in self.blok.tocke:
-			if not (0 <= y < self.dolzina - 1):
+			if not y < self.dolzina - 1:
 				self.povrsina += (self.blok.tocke)
 				self.pojav_bloka()
 				a = 1
@@ -92,7 +91,12 @@ class Igra:
 
 
 
-	# Preverimo, če se premikajoči se blok v naslednji potezi zaleti v že obstoječe bloke.
+	# Preverimo, če se premikajoči se blok v naslednji potezi zaleti v že obstoječe bloke ali steno.
+
+	def blok_v_steno_rotiranje(self):
+		for i in self.blok.rotiraj_brez_ovire():
+			if 0 <= i[0] < self.sirina:
+				return False
 
 	def blok_v_blok_dol(self):
 		return not len(self.blok.premakni_dol_brez_ovire_test() + self.povrsina) == len(set(self.blok.premakni_dol_brez_ovire_test() + self.povrsina))
@@ -139,7 +143,7 @@ class Blok(Igra):
 				for i in range(len(self.tocke)):
 					x, y = self.tocke[i][0], self.tocke[i][1]
 					if x == instance.sirina - 1:
-						return
+						return None
 					else:
 						continue
 				for i in range(len(self.tocke)):
@@ -150,7 +154,7 @@ class Blok(Igra):
 				for i in range(len(self.tocke)):
 					x, y = self.tocke[i][0], self.tocke[i][1]
 					if x == 0:
-						return
+						return None
 					else:
 						continue
 				for i in range(len(self.tocke)):
@@ -196,13 +200,62 @@ class Blok(Igra):
 				obrnjene_tocke.append((-tocke_okrog_izhodisca[i][1],tocke_okrog_izhodisca[i][0]))
 			for i in range(len(obrnjene_tocke)):
 				self.tocke[i] = (int(obrnjene_tocke[i][0]) + centrala[0], int(obrnjene_tocke[i][1]) + centrala[1])
-		elif set(self.tocke).intersection(instance.povrsina)[0] > centrala[0]:
-			self.premakni_vodoravno(LEVO)
-			self.rotiraj()
-		elif set(self.tocke).intersection(instance.povrsina)[0] < centrala[0]:
-			self.premakni_vodoravno(DESNO)
-			self.rotiraj()
+			if Igra.blok_v_steno(instance) == True:
+				self.popravi_blok_po_rotaciji()
+		elif Igra.blok_v_steno_rotiranje(instance) == False:
+			for a in self.rotiraj_brez_ovire():
+				if a[0] - 1 < 0 or a[0] + 1 >= instance.sirina:
+					return
+				for x, y in instance.povrsina:
+					if (a[0] + 1, y) == (x, y) or (a[0] - 1, y) == (x, y):
+						return
+			if set(self.rotiraj_brez_ovire()).intersection(instance.povrsina) != {}:
+				if set(self.rotiraj_brez_ovire()).intersection(instance.povrsina).pop()[0] > centrala[0]:
+					print(set(self.rotiraj_brez_ovire()).intersection(instance.povrsina), 'bo slo v levo')
+					self.premakni_vodoravno(LEVO)
+					self.rotiraj()
+				elif set(self.rotiraj_brez_ovire()).intersection(instance.povrsina).pop()[0] < centrala[0]:
+					print(set(self.rotiraj_brez_ovire()).intersection(instance.povrsina), 'bo slo v desno')
+					self.premakni_vodoravno(DESNO)
+					self.rotiraj()
 		return self.tocke
+
+	def rotiraj_nazaj(self):
+		# dejansko ni namenjeno igri, temveč da blok obrne nazaj, če se le ta po rotaciji in premiku prekriva z blokom ali steno, kar povzroči rekurzijo
+		centrala = self.centralna_kocka()
+		tocke_okrog_izhodisca = []
+		obrnjene_tocke = []
+		for i in range(len(self.tocke)):
+			tocke_okrog_izhodisca.append((int(self.tocke[i][0]) - centrala[0], int(self.tocke[i][1]) - centrala[1]))
+		for i in range(len(tocke_okrog_izhodisca)):
+			obrnjene_tocke.append((tocke_okrog_izhodisca[i][1],-tocke_okrog_izhodisca[i][0]))
+		for i in range(len(obrnjene_tocke)):
+			self.tocke[i] = (int(obrnjene_tocke[i][0]) + centrala[0], int(obrnjene_tocke[i][1]) + centrala[1])
+
+	def popravi_blok_po_rotaciji(self):
+		if Igra.blok_v_steno(instance) == True:
+			for i in self.tocke:
+				if i[0] < 0:
+					if self.premakni_vodoravno(DESNO) != None:
+						print('sem premaknil desno')
+						break
+					else:
+						self.premakni_vodoravno(LEVO)
+						self.rotiraj_nazaj()
+						print('sem rotiral nazaj')
+						break
+				elif i[0] > instance.sirina - 1:
+					if self.premakni_vodoravno(LEVO) != None:
+						print('sem premaknil levo')
+						break
+					else:
+						self.premakni_vodoravno(DESNO)
+						self.rotiraj_nazaj()
+						break
+				elif i[1] < 0:
+					self.premakni_dol()
+					break
+			self.popravi_blok_po_rotaciji()
 
 	def rotiraj_brez_ovire(self):
 		centrala = self.centralna_kocka()

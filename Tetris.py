@@ -9,6 +9,8 @@ import logika
 
 VELIKOST_POLJA = 10
 ODMIK = 5
+ZACETNA_HITROST = 2
+KONCNA_HITROST = 1000
 
 class Tetris:
 
@@ -20,7 +22,6 @@ class Tetris:
 			height=VELIKOST_POLJA * self.igra.dolzina + 2 * ODMIK)
 		self.igralna_plosca.grid(row = 0, column = 0)	
 		self.okno.bind('<Key>', self.pomen_tipke)
-		self.hitrost = 5
 		prikaz = tk.Frame(self.okno)
 		prikaz.grid(row = 1, column = 0)
 		self.prikaz_tock = tk.Label(prikaz)
@@ -30,9 +31,11 @@ class Tetris:
 
 
 	def korak(self):
+		self.postopoma_povecjaj_hitrost()
 		self.igra.blok.premakni_dol()
 		self.osvezi_prikaz()
 		self.okno.after(int(1000 // self.hitrost), self.korak)
+		print(self.hitrost)
 		self.igra.blok_v_tla()
 		self.igra.odstrani()
 
@@ -49,7 +52,7 @@ class Tetris:
 
 
 	def postopoma_povecjaj_hitrost(self):
-		pass
+		self.hitrost = ((self.igra.score/100) ** (3/2)) + ZACETNA_HITROST
 			
 
 
