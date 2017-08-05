@@ -1,5 +1,9 @@
 import tkinter as tk
 import logika
+import sys
+import os
+import datetime
+import winsound
 #import pyglet
 
 #music = pyglet.resource.media('Complete History Of The Soviet Union, Arranged To The Melody Of Tetris.mp3')
@@ -9,8 +13,6 @@ import logika
 
 VELIKOST_POLJA = 10
 ODMIK = 5
-ZACETNA_HITROST = 2
-KONCNA_HITROST = 1000
 
 class Tetris:
 
@@ -25,19 +27,43 @@ class Tetris:
 		prikaz = tk.Frame(self.okno)
 		prikaz.grid(row = 1, column = 0)
 		self.prikaz_tock = tk.Label(prikaz)
-		self.korak()
 		self.prikaz_tock.pack()
+		self.prikaz_naslednjega_bloka = tk.Canvas(width=50, height=50)
+		self.prikaz_naslednjega_bloka.grid(row = 0, column = 1)
+		winsound.PlaySound('Complete_History_Of_The_Soviet_Union_Arranged_To_T.wav', winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
+		self.korak()
+		
 
 
 
 	def korak(self):
-		self.postopoma_povecjaj_hitrost()
+		self.igra.postopoma_povecjaj_hitrost()
 		self.igra.blok.premakni_dol()
-		self.osvezi_prikaz()
-		self.okno.after(int(1000 // self.hitrost), self.korak)
-		print(self.hitrost)
-		self.igra.blok_v_tla()
 		self.igra.odstrani()
+		self.igra.blok_v_tla()
+		self.osvezi_prikaz()
+		if self.igra.konec_igre() == None:
+			self.okno.after(int(1000 // self.igra.hitrost), self.korak)
+		if self.igra.konec_igre() == True:
+			with open('Scoreboard.txt', 'a') as dat:
+				dat.write(str(self.igra.score) + '          ' +  str(datetime.datetime.now()) + '\n')
+			self.igra_koncana()
+
+	def igra_koncana(self):
+		self.popup = tk.Toplevel()
+		okvir_popup = tk.Label(self.popup, text='Tvoje število točk je: ' + str(self.igra.score) + ', a si vseeno žal izgubil :)', height = 5, width = 40).pack()
+		gumb_popup1 = tk.Button(self.popup, text='Izhod', command = lambda: os._exit(0)).pack()
+		gumb_popup2 = tk.Button(self.popup, text='Nova igra').pack()
+
+
+
+	
+
+
+
+
+
+
 
 	def pomen_tipke(self, event):
 		if event.keysym == 'Right':
@@ -49,10 +75,9 @@ class Tetris:
 		elif event.keysym == 'Up':
 			self.igra.blok.rotiraj()
 			self.osvezi_prikaz()
-
-
-	def postopoma_povecjaj_hitrost(self):
-		self.hitrost = ((self.igra.score/100) ** (3/2)) + ZACETNA_HITROST
+		elif event.keysym == 'Down':
+			self.igra.blok.premakni_dol()
+			self.osvezi_prikaz()
 			
 
 
@@ -76,6 +101,12 @@ class Tetris:
 				ODMIK + VELIKOST_POLJA * x + VELIKOST_POLJA,
 				ODMIK + VELIKOST_POLJA * y + VELIKOST_POLJA, fill='black')
 		self.prikaz_tock['text'] = str(self.igra.score)
+		self.prikaz_naslednjega_bloka.delete('all')
+		for x, y in self.igra.prikaz_bloka:
+			self.prikaz_naslednjega_bloka.create_rectangle(4 * ODMIK + VELIKOST_POLJA * x,
+				4 * ODMIK + VELIKOST_POLJA * y,
+				4 * ODMIK + VELIKOST_POLJA * x + VELIKOST_POLJA,
+				4 * ODMIK + VELIKOST_POLJA * y + VELIKOST_POLJA)
 
 
 

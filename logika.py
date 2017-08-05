@@ -1,11 +1,9 @@
 import random
 DESNO, DOL, LEVO = "desno", "dol", "levo"
 
-#Bloki = [[(-1, 0), (0, 0), (1, 0), (2, 0)], [(-1, 0), (-1, 1), (0, 1), (1, 1)], [(1, 0), (-1, 1),
-#(0, 1), (1, 1)], [(0, 0), (0, 1), (1, 0), (1, 1)], [(0, 0), (0, 1), (1, 0), (-1, 1)], [(0, 0), (0,
-#1), (1, 1), (-1, 1)], [(0, 0), (-1, 0), (0, 1), (1, 1)]]
-
-Bloki = [[(-1, 0), (0, 0), (1, 0), (2, 0)]]
+Bloki = [[(-1, 0), (0, 0), (1, 0), (2, 0)], [(-1, 0), (-1, 1), (0, 1), (1, 1)], [(1, 0), (-1, 1),
+(0, 1), (1, 1)], [(0, 0), (0, 1), (1, 0), (1, 1)], [(0, 0), (0, 1), (1, 0), (-1, 1)], [(0, 0), (0,
+1), (1, 1), (-1, 1)], [(0, 0), (-1, 0), (0, 1), (1, 1)]]
 
 
 
@@ -18,10 +16,17 @@ Bloki = [[(-1, 0), (0, 0), (1, 0), (2, 0)]]
 
 
 
+
+ZACETNA_HITROST = 2
 
 class Igra:
 
+	
+
 	def __init__(self, sirina, dolzina):
+		# self.izjava predstavlja le izjavo, ki pove definiciji pojav_bloka, da na začetku generira 2 naključna bloka, a vsakič ko to definicijo
+		# kličemo naslednjič, bo premaknila blok iz prikaza na površino, in generirala nov blok v prikazu  
+		self.izjava = True
 		self.sirina = sirina
 		self.dolzina = dolzina
 		self.povrsina = []
@@ -29,11 +34,17 @@ class Igra:
 		self.score = 0
 
 	def pojav_bloka(self):
-		dolocen_blok = random.choice(Bloki)
+		if self.izjava == True:
+			self.dolocen_blok = random.choice(Bloki)
+			self.prikaz_bloka = random.choice(Bloki)
+			self.izjava = False
+		else:
+			self.dolocen_blok = self.prikaz_bloka
+			self.prikaz_bloka = random.choice(Bloki)
 		s=[]
 		# Določen blok spravimo na sredino in na vrh igralne površine
-		for i in range(len(dolocen_blok)):
-			x, y = dolocen_blok[i][0], dolocen_blok[i][1]
+		for i in range(len(self.dolocen_blok)):
+			x, y = self.dolocen_blok[i][0], self.dolocen_blok[i][1]
 			x+= int(self.sirina) // 2
 			s.append((x, y))
 		self.blok = Blok(s)
@@ -80,6 +91,14 @@ class Igra:
 							m.append(i)
 					self.povrsina = m
 		self.score +=int(9 ** (t / 2)) - 1
+
+	def konec_igre(self):
+		for x, y in self.povrsina:
+			if y < 1:
+				return True
+
+	def postopoma_povecjaj_hitrost(self):
+		self.hitrost = ((self.score/100) ** (3/2)) + ZACETNA_HITROST
 
 
 
