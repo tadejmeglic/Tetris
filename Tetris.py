@@ -39,8 +39,8 @@ class Tetris:
 	def korak(self):
 		self.igra.postopoma_povecjaj_hitrost()
 		self.igra.blok.premakni_dol()
-		self.igra.odstrani()
 		self.igra.blok_v_tla()
+		self.igra.odstrani()
 		self.osvezi_prikaz()
 		if self.igra.konec_igre() == None:
 			self.okno.after(int(1000 // self.igra.hitrost), self.korak)
@@ -51,9 +51,9 @@ class Tetris:
 
 	def igra_koncana(self):
 		self.popup = tk.Toplevel()
+		self.popup.title("Bo drugič boljše!")
 		okvir_popup = tk.Label(self.popup, text='Tvoje število točk je: ' + str(self.igra.score) + ', a si vseeno žal izgubil :)', height = 5, width = 40).pack()
 		gumb_popup1 = tk.Button(self.popup, text='Izhod', command = lambda: os._exit(0)).pack()
-		gumb_popup2 = tk.Button(self.popup, text='Nova igra').pack()
 
 
 
