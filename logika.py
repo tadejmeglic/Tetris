@@ -25,7 +25,7 @@ class Igra:
 
 	def __init__(self, sirina, dolzina):
 		# self.izjava predstavlja le izjavo, ki pove definiciji pojav_bloka, da na začetku generira 2 naključna bloka, a vsakič ko to definicijo
-		# kličemo naslednjič, bo premaknila blok iz prikaza na površino, in generirala nov blok v prikazu  
+		# kličemo naslednjič, bo premaknila blok iz prikaza na površino, in generirala nov blok v prikazu.
 		self.izjava = True
 		self.sirina = sirina
 		self.dolzina = dolzina
@@ -42,7 +42,7 @@ class Igra:
 			self.dolocen_blok = self.prikaz_bloka
 			self.prikaz_bloka = random.choice(Bloki)
 		s=[]
-		# Določen blok spravimo na sredino in na vrh igralne površine
+		# Določen blok spravimo na sredino in na vrh igralne površine.
 		for i in range(len(self.dolocen_blok)):
 			x, y = self.dolocen_blok[i][0], self.dolocen_blok[i][1]
 			x+= int(self.sirina) // 2
@@ -55,6 +55,7 @@ class Igra:
 				return True
 
 	def blok_v_tla(self):
+		# Funkcija spremeni premikajoči se blok v statičnega, ko se vertikalno dotakne tal. Pojavi se novi blok.
 		a = 0
 		for x, y in self.blok.tocke:
 			if not y < self.dolzina - 1:
@@ -70,7 +71,7 @@ class Igra:
 			return True
 
 	def odstrani(self):
-		# t označuje število odstranjenih vrstic naenkrat in exsponentno poveča pridobljene točke
+		# t označuje število odstranjenih vrstic naenkrat in eksponentno poveča pridobljene točke.
 		t=0
 		for y in range(self.dolzina):
 			k=0
@@ -98,6 +99,7 @@ class Igra:
 				return True
 
 	def postopoma_povecjaj_hitrost(self):
+		# Hitrost se v odvisnosti od števila točk nelinearno povečuje.
 		self.hitrost = ((self.score/100) ** (3/2)) + ZACETNA_HITROST
 
 
@@ -110,7 +112,7 @@ class Igra:
 
 
 
-	# Preverimo, če se premikajoči se blok v naslednji potezi zaleti v že obstoječe bloke ali steno.
+	# Preverimo, če se premikajoči se blok v naslednji potezi zaleti v že obstoječe bloke ali steno. Te funkcije so namenjene lažji in bolj pregledni kodi v nadaljevanju.
 
 	def blok_v_steno_rotiranje(self):
 		for i in self.blok.rotiraj_brez_ovire():
@@ -137,6 +139,7 @@ class Blok(Igra):
 		return 'Blok({})'.format(self.tocke)
 
 	def premakni_dol(self):
+		# Funkcija preveri, če je v naslednji potezi prostor za blok, da se premakne dol. Če ni, se spremeni v statični blok.
 		if Igra.blok_v_tla(instance) == False:
 			if Igra.blok_v_blok_dol(instance) == False:
 				for i in range(len(self.tocke)):
@@ -148,7 +151,7 @@ class Blok(Igra):
 			Igra.blok_v_tla(instance)
 
 	def premakni_dol_brez_ovire_test(self):
-		# Metoda, ki preveri, kakšne bodo koordinate točk bloka po premiku. Ignorira tla in ostale bloke.
+		# Metoda, ki preveri, kakšne bodo koordinate točk bloka po premiku dol. Ignorira tla in ostale bloke. Uporabi se pri preverjanju, če je pod blokom že statičen blok.
 		s=[]
 		for i in range(len(self.tocke)):
 			x, y = self.tocke[i][0], self.tocke[i][1]
@@ -157,6 +160,7 @@ class Blok(Igra):
 		return s
 
 	def premakni_vodoravno(self, smer):
+		# Premik levo in desno, funkcija ne naredi nič, če je levo/desno stena ali že obstoječ statičen blok
 		if smer == DESNO:
 			if Igra.blok_v_blok_desno(instance) == False:
 				for i in range(len(self.tocke)):
@@ -198,6 +202,7 @@ class Blok(Igra):
 			return v_2
 
 	def centralna_kocka(self):
+		# Sredinska kocka, najdena s pomočjo povprečja. Potrebno je vedet, da v najdaljšem bloku ni mogoče najti sredine, zato je izbrana ena izmed središčnih dveh
 		x, y = 0, 0
 		for i in range(len(self.tocke)):
 			x+=int(self.tocke[i][0])
@@ -213,6 +218,7 @@ class Blok(Igra):
 		# treba zamenjati koordinati ter obrniti predznak pri prvi. Self.tocke, tocke_okrog_izgodisca in obrnjene_tocke
 		# so enako dolgi seznami, takšen napis je le za lažji pregled.
 		if Igra.blok_v_blok_rotiranje(instance) == False:
+			# Preverimo, če se blok po rotiranju prekriva z že obstoječimi statičnimi bloki, nakar popravimo njegovo pozicijo temu primerno.
 			for i in range(len(self.tocke)):
 				tocke_okrog_izhodisca.append((int(self.tocke[i][0]) - centrala[0], int(self.tocke[i][1]) - centrala[1]))
 			for i in range(len(tocke_okrog_izhodisca)):
@@ -252,6 +258,8 @@ class Blok(Igra):
 			self.tocke[i] = (int(obrnjene_tocke[i][0]) + centrala[0], int(obrnjene_tocke[i][1]) + centrala[1])
 
 	def popravi_blok_po_rotaciji(self):
+		# Na običajni rotaciji ni bilo potrebno it skozi to funkcijo, a ko je prišlo do rotiranja blizu stene, ki je pomaknilo blok hkrati v smer nasprotno od stene, se je zgodilo
+		# prekrivanje na že obstoječe bloke in dogajale so se zelo čudne stvari. Ta funkcija je namenjena le temu, da popravi čimveč takšnih situacij, katere se v tetrisu zgodijo bolj poredko
 		if Igra.blok_v_steno(instance) == True:
 			for i in self.tocke:
 				if i[0] < 0:
@@ -289,8 +297,8 @@ class Blok(Igra):
 			s.append((int(obrnjene_tocke[i][0]) + centrala[0], int(obrnjene_tocke[i][1]) + centrala[1]))
 		return s
 
+# Igri se dodeli ime, da se je dalo sklicevat na njo
 instance = Igra(10, 20)
-instance.pojav_bloka()
 
 
 
